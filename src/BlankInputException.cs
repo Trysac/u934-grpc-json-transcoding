@@ -1,24 +1,24 @@
 namespace Trysac.GrpcJsonTranscoding;
 
-/// <summary>The input is empty or holds only whitespace.</summary>
+/// <summary>Thrown when a required text input is empty or whitespace only.</summary>
 public sealed class BlankInputException : ArgumentException
 {
-    /// <summary>Creates the exception with the message <c>input is blank</c>.</summary>
+    /// <summary>Creates a new <see cref="BlankInputException"/> with the default message.</summary>
     public BlankInputException()
         : base("input is blank")
     {
     }
 
-    /// <summary>Creates the exception with a message.</summary>
-    /// <param name="message">The message.</param>
+    /// <summary>Creates a new <see cref="BlankInputException"/> with a custom message.</summary>
+    /// <param name="message">The error message.</param>
     public BlankInputException(string message)
         : base(message)
     {
     }
 
-    /// <summary>Creates the exception with a message and the exception that caused it.</summary>
-    /// <param name="message">The message.</param>
-    /// <param name="innerException">The cause.</param>
+    /// <summary>Creates a new <see cref="BlankInputException"/> with a custom message and inner exception.</summary>
+    /// <param name="message">The error message.</param>
+    /// <param name="innerException">The underlying cause.</param>
     public BlankInputException(string message, Exception innerException)
         : base(message, innerException)
     {

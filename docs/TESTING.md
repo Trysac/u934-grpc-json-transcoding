@@ -1,36 +1,20 @@
 # Testing
 
-## Running
-
-```sh
-dotnet test Library.sln                # xUnit and FsCheck tests
-dotnet run --project scripts/Check --  # every gate, as CI and the factory run it
-```
-
 ## Policy
 
-- Line coverage of the library (measured by coverlet) must stay at or above 80 %; the gate fails
-  below it.
-- Tests exercise the public API. They assert every observable effect: returned values, thrown
-  exceptions (`Assert.Throws`) and their messages.
-- Property tests (FsCheck `[Property]`) state invariants such as idempotence or round trips.
-- Each bug fix starts with a failing test that reproduces it.
-- Tests are deterministic: no network, no wall clock, no dependence on test order.
+- Line coverage must stay at or above 80%.
+- Tests exercise the public API, asserting return values, thrown `TranscodingException` types, and exception codes.
+- No network dependencies, no clock reliance, deterministic execution.
 
-## Tiers
+## Structure
 
-- Local tier (every gate run, coverage measured here): unit and property tests, plus conformance
-  on small fixtures kept in the repository.
-- CI tier: conformance that needs an external tool or a download. Mark the test class or method
-  with `[Trait("Category", "conformance")]`; the tests gate filters the trait out
-  (`Category!=conformance`) unless `scripts/Check` runs with `FABRICA_CI=1`, while the lint gate
-  always compiles it. The CI `conformance` job sets `FABRICA_CI=1` and runs the full suite. Tools
-  are installed by the optional `ci/conformance-setup.sh` (bash, CI only; verify every download
-  against a pinned SHA-256), and tests return early with a clear message when their tool is
-  missing.
+- Unit tests: Located in `tests/`, covering specific components (`PathTemplateTests.cs`, `TranscoderTests.cs`).
+- Fixtures: `tests/fixtures/` contains the JSON representations of `google/api/http.proto` reference examples, which the library uses to verify compliance.
+- Property tests: Uses FsCheck to verify routing specificity and round-trip consistency.
 
-## Layout
+## Execution
 
-Tests live in `tests/` in the namespace `Trysac.GrpcJsonTranscoding.Tests`, one `*Tests.cs` class per
-area. Fixtures and golden files go in `tests/fixtures/` and are copied next to the test assembly
-(read them from `AppContext.BaseDirectory`).
+```sh
+dotnet test
+dotnet run --project scripts/Check -- # Run gates
+```

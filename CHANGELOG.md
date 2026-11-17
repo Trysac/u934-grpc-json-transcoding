@@ -9,4 +9,5 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Added `google/api/http.proto` REST-to-gRPC JSON transcoder (`PathTemplate`, `HttpRule`, `MessageDescriptor`, `FieldDescriptor`, `Transcoder`, and `TranscodingException`).
 - Initial project structure from the factory utility template.
