@@ -1,31 +1,17 @@
 # Architecture
 
-## Purpose
+## Overview
 
-`Trysac.GrpcJsonTranscoding` is a small, dependency-free .NET library: Transcode REST JSON requests to gRPC messages by the google.api.http rules: path templates, body and query binding, additional bindings and proto3 JSON names
+`Trysac.GrpcJsonTranscoding` is a self-contained .NET library that translates REST/HTTP requests into gRPC method identifiers and proto3 JSON payloads (`JsonObject`) according to `google/api/http.proto`.
 
-## Shape
+## Components
 
-```text
-caller code --> namespace Trysac.GrpcJsonTranscoding (src/)
-                    |
-                    +-- static classes with pure functions; no I/O, no global mutable state
-                    +-- internal helpers (optional)
-```
+1. **Descriptor Model**: Defines protobuf messages and fields using `MessageDescriptor` and `FieldDescriptor`, enabling mapping without a protobuf runtime dependency.
+2. **Path Template Engine**: Parses the `google/api/http.proto` grammar. It supports single-segment (`*`), multi-segment (`**`), literals, and variables (`{name=...}`). It handles RFC-compliant percent-decoding, including reserved expansion for multi-segment variables.
+3. **Transcoder**: The primary orchestrator. It verifies `HttpRule` configurations (path variables, body/response_body selectors) at construction time. It matches HTTP requests against routes using specificity-based matching (literals > `*` > `**`) and handles variable, body, and query parameter binding precedence.
+4. **JSON Mapping**: Maps inputs to `JsonObject` following the proto3 JSON standard, including snake_case to lowerCamelCase conversion, 64-bit integer-to-string serialization, and enum-by-name handling.
 
-- **Public API**: every `public` type and member of the assembly. `internal` types may change
-  without a major version.
-- **Errors**: invalid input throws an `ArgumentException` subclass of the library (such as
-  `BlankInputException`) documented with `<exception>`; null arguments throw
-  `ArgumentNullException`. The library never writes to the console or exits.
-- **Side effects**: none. If a feature needs I/O, accept a `Stream`, a `TextReader` or a small
-  interface instead of opening resources, and record the choice in an ADR.
+## Differences from `grpc-gateway`
 
-## Quality contract
-
-`scripts/Check/` is the single definition of the gates; `fabrica.json` tells the factory and CI how
-to run it. See [TESTING.md](TESTING.md).
-
-## Decisions
-
-Architecture decisions are recorded in [decisions/](decisions/) as numbered ADRs.
+1. **Strict Query Parameters**: Unknown query parameters trigger `unknown_field` (400) instead of being ignored.
+2. **Conflict Detection**: Fields bound via multiple sources (e.g., path variable + query parameter) trigger `conflicting_binding` (400).

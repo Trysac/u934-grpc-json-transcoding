@@ -1,45 +1,41 @@
-# grpc-json-transcoding
+# Trysac.GrpcJsonTranscoding
 
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![CI](https://github.com/Trysac/u934-grpc-json-transcoding/actions/workflows/ci.yml/badge.svg)](https://github.com/Trysac/u934-grpc-json-transcoding/actions/workflows/ci.yml)
+Transcode REST JSON requests to gRPC messages by the `google.api.http` rules: path templates, body and query binding, additional bindings and proto3 JSON names.
 
-Transcode REST JSON requests to gRPC messages by the google.api.http rules: path templates, body and query binding, additional bindings and proto3 JSON names
+## Why Trysac.GrpcJsonTranscoding?
 
-## Problem
+Teams that expose gRPC services to browsers and partners need REST routes that follow the `google.api.http` annotations. Hand-written mappings often drift from proto definitions, and existing transcoders are coupled to specific reverse proxies or ASP.NET Core hosting. `Trysac.GrpcJsonTranscoding` implements the `google/api/http.proto` path template grammar and binding rules as a host-independent, testable pure function from an HTTP request to the target gRPC method and its request message in proto3 JSON, with zero runtime dependencies.
 
-Describe in two or three sentences the concrete problem this utility solves, who hits it, and what
-they do today without it. Replace this paragraph when the first real feature lands.
+## Why not `grpc-gateway`?
 
-## Install
+`grpc-gateway` is a powerful tool, but it is tied to the Go ecosystem. `Trysac.GrpcJsonTranscoding` is a pure .NET library. Unlike `grpc-gateway`, which ignores unknown query parameters by default, `Trysac.GrpcJsonTranscoding` explicitly rejects unknown fields and conflicting bindings (fields bound in path/query/body simultaneously) to prevent parameter smuggling and catch API drift early.
 
-NuGet package `Trysac.GrpcJsonTranscoding`. Until it is published to nuget.org, build it from a release
-tag with `dotnet pack src/Library.csproj`, then reference the package:
+## Installation
 
-```xml
-<PackageReference Include="Trysac.GrpcJsonTranscoding" Version="0.1.0" />
+Add the library to your .NET project:
+
+```bash
+dotnet add package Trysac.GrpcJsonTranscoding
 ```
-
-Requires .NET 10 or newer. No dependencies outside the base class library.
 
 ## Usage
 
 ```csharp
 using Trysac.GrpcJsonTranscoding;
 
-// Normalize trims surrounding whitespace and lower-cases the text.
-var name = Text.Normalize("  Hello World "); // "hello world"
+var request = new MessageDescriptor("GetMessageRequest", [new FieldDescriptor("name", FieldType.String)]);
+var response = new MessageDescriptor("Message", [new FieldDescriptor("name", FieldType.String)]);
+var binding = new MethodBinding("Messaging.GetMessage", new HttpRule("GET", "/v1/{name=messages/*}"), request, response);
+var transcoder = new Transcoder([binding]);
 
-// Blank input is rejected explicitly instead of returning an empty string.
-Text.Normalize("   "); // throws BlankInputException ("input is blank")
+TranscodedRequest call = transcoder.TranscodeRequest("GET", "/v1/messages/123456", jsonBody: null);
 ```
 
-## Documentation
+## Public API Summary
 
-- [Architecture](docs/ARCHITECTURE.md) and [decisions](docs/decisions/)
-- [Testing](docs/TESTING.md) and [security](docs/SECURITY.md)
-- [Project record](docs/PROJECT.md) and [stack](docs/STACK.md)
-- [Changelog](CHANGELOG.md) and [contributing guide](CONTRIBUTING.md)
+- **Models**: `HttpRule`, `MethodBinding`, `MessageDescriptor`, `FieldDescriptor`, `FieldType` (Scalar types: `String`, `Bytes`, `Bool`, `Int32/64`, `UInt32/64`, `Double`, `Float`, `Enum`, `Message`).
+- **Engine**: `PathTemplate` (Parses grammar: `*`, `**`, literals, variables), `Transcoder` (Validates bindings, routes HTTP to gRPC, maps JSON).
+- **Errors**: `TranscodingException` (`Code` and `HttpStatus` properties). Codes: `not_found` (404), `method_not_allowed` (405), `invalid_body` (400), `unknown_field` (400), `invalid_value` (400), `conflicting_binding` (400), `input_too_large` (413/400), `invalid_template` (500), `invalid_rule` (500).
+- **Limits**: URL 8,192 chars; JSON body 4 MiB; 1,000 query params; 32 levels field depth; 64 levels JSON depth.
 
-## License
-
-[MIT](LICENSE) (c) 2026 Miguel Gomez
+See [docs/SECURITY.md](docs/SECURITY.md) for threat modeling and limits.

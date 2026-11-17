@@ -1,27 +1,14 @@
-# Security notes
+# Security & Threat Model
 
-## Threat model
+## Threats
 
-`Trysac.GrpcJsonTranscoding` is a pure library without I/O. The main risks are:
+1. **Resource Exhaustion (DoS)**: Attacker provides oversized URLs, massive JSON payloads, or deep nesting to exhaust memory/CPU.
+2. **Parameter Smuggling**: Attacker overwrites path variables via query or body to bypass upstream security.
+3. **Path Traversal**: Attacker exploits percent-encoded characters (like `%2F`) to escape path segments.
 
-- **Supply chain**: a compromised NuGet package, SDK or CI action. Mitigation: base class library
-  only, every package pinned to an exact version with a committed `packages.lock.json` restored in
-  locked mode, `dotnet list package --vulnerable` (the NuGet advisory database) and OSV-Scanner over
-  the lock files in the gates, Dependabot weekly updates, actions pinned by commit SHA, minimal
-  workflow permissions, the SDK pinned in `global.json`.
-- **Leaked secrets**: tokens committed by mistake. Mitigation: `gitleaks` runs in the local gates
-  and in CI; `.env` files are git-ignored.
-- **Insecure code**: command injection, unsafe deserialization, disabled TLS validation.
-  Mitigation: the .NET analyzers (`latest-recommended`, including the security rules) and nullable
-  warnings as errors, and the factory's Semgrep rules (`.semgrep/factory-rules.yml`, `nosemgrep`
-  ignored); fix the code instead of silencing it.
-- **Untrusted input**: callers may pass hostile strings. Mitigation: validate input and throw
-  explicit, documented exceptions; never deserialize untrusted bytes with `BinaryFormatter`;
-  never start a shell with untrusted data.
+## Mitigations
 
-## Publishing
-
-Releases are git tags; publishing to nuget.org needs an account and an API key, which are never
-stored in the repository.
-
-To report a vulnerability, see [SECURITY.md](../SECURITY.md).
+- **Size Limits**: URL/Query (8,192 chars), JSON body (4 MiB), Query params (1,000 count), Field depth (32 levels), JSON depth (64 levels).
+- **Binding Safety**: `conflicting_binding` (400) prevents fields from being bound multiple times.
+- **Encoding**: Multi-segment variables preserve `%2F` (reserved expansion) to block path traversal.
+- **Error Safety**: `TranscodingException` messages are truncated to 200 chars and never echo raw request bodies.

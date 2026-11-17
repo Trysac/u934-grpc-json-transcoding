@@ -2,7 +2,7 @@ using Xunit;
 
 namespace Trysac.GrpcJsonTranscoding.Tests;
 
-/// <summary>Tests of the public API.</summary>
+/// <summary>Tests of the text normalization helper.</summary>
 public class TextTests
 {
     [Theory]

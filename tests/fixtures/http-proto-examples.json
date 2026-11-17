@@ -1,0 +1,128 @@
+[
+  {
+    "id": "example_1_resource_path_template",
+    "source_lines": "google/api/http.proto:52-70",
+    "description": "Bind a multi-segment variable {name=messages/*} to a single string field.",
+    "grpc_method": "Messaging.GetMessage",
+    "rule": {
+      "method": "GET",
+      "pattern": "/v1/{name=messages/*}"
+    },
+    "request": {
+      "http_method": "GET",
+      "path_and_query": "/v1/messages/123456",
+      "body": null
+    },
+    "expected_message": {
+      "name": "messages/123456"
+    }
+  },
+  {
+    "id": "example_2_nested_field_path_and_query",
+    "source_lines": "google/api/http.proto:72-104",
+    "description": "Bind simple path variable and query parameters including nested sub.subfield and int64 revision.",
+    "grpc_method": "Messaging.GetMessageV2",
+    "rule": {
+      "method": "GET",
+      "pattern": "/v1/messages/{message_id}"
+    },
+    "request": {
+      "http_method": "GET",
+      "path_and_query": "/v1/messages/123456?revision=2&sub.subfield=foo",
+      "body": null
+    },
+    "expected_message": {
+      "messageId": "123456",
+      "revision": "2",
+      "sub": {
+        "subfield": "foo"
+      }
+    }
+  },
+  {
+    "id": "example_3_body_submessage",
+    "source_lines": "google/api/http.proto:106-135",
+    "description": "PATCH with body mapped to the 'message' sub-field.",
+    "grpc_method": "Messaging.UpdateMessage",
+    "rule": {
+      "method": "PATCH",
+      "pattern": "/v1/messages/{message_id}",
+      "body": "message"
+    },
+    "request": {
+      "http_method": "PATCH",
+      "path_and_query": "/v1/messages/123456",
+      "body": "{\"text\": \"Hi!\"}"
+    },
+    "expected_message": {
+      "messageId": "123456",
+      "message": {
+        "text": "Hi!"
+      }
+    }
+  },
+  {
+    "id": "example_4_body_wildcard_star",
+    "source_lines": "google/api/http.proto:137-162",
+    "description": "PATCH with body '*' mapping all top-level JSON body fields outside the path.",
+    "grpc_method": "Messaging.UpdateMessageWildcard",
+    "rule": {
+      "method": "PATCH",
+      "pattern": "/v1/messages/{message_id}",
+      "body": "*"
+    },
+    "request": {
+      "http_method": "PATCH",
+      "path_and_query": "/v1/messages/123456",
+      "body": "{\"text\": \"Hi!\"}"
+    },
+    "expected_message": {
+      "messageId": "123456",
+      "text": "Hi!"
+    }
+  },
+  {
+    "id": "example_5_additional_bindings",
+    "source_lines": "google/api/http.proto:164-194",
+    "description": "GET rule with additional_bindings matching user_id and message_id.",
+    "grpc_method": "Messaging.GetMessageWithAdditional",
+    "rule": {
+      "method": "GET",
+      "pattern": "/v1/messages/{message_id}",
+      "additional_bindings": [
+        {
+          "method": "GET",
+          "pattern": "/v1/users/{user_id}/messages/{message_id}"
+        }
+      ]
+    },
+    "request": {
+      "http_method": "GET",
+      "path_and_query": "/v1/users/me/messages/123456",
+      "body": null
+    },
+    "expected_message": {
+      "messageId": "123456",
+      "userId": "me"
+    }
+  },
+  {
+    "id": "example_6_custom_verb_cancel",
+    "source_lines": "google/api/http.proto:270-285",
+    "description": "Custom verb :cancel at the end of a resource path template.",
+    "grpc_method": "Operations.CancelOperation",
+    "rule": {
+      "method": "POST",
+      "pattern": "/v1/{name=operations/*}:cancel",
+      "body": "*"
+    },
+    "request": {
+      "http_method": "POST",
+      "path_and_query": "/v1/operations/op1:cancel",
+      "body": null
+    },
+    "expected_message": {
+      "name": "operations/op1"
+    }
+  }
+]
