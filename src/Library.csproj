@@ -1,0 +1,24 @@
+<!-- Factory-owned file: agents must not edit it. Dependencies are added by the factory
+     (its scripts/AddDependency tool) at exact versions; shared settings live in
+     Directory.Build.props. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>Trysac.GrpcJsonTranscoding</AssemblyName>
+    <RootNamespace>Trysac.GrpcJsonTranscoding</RootNamespace>
+    <PackageId>Trysac.GrpcJsonTranscoding</PackageId>
+    <Version>0.1.0</Version>
+    <Description>Transcode REST JSON requests to gRPC messages by the google.api.http rules: path templates, body and query binding, additional bindings and proto3 JSON names</Description>
+    <Authors>Miguel Gomez</Authors>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/Trysac/u934-grpc-json-transcoding</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Trysac/u934-grpc-json-transcoding</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="../README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+
+</Project>
